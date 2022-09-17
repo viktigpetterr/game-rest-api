@@ -1,0 +1,6 @@
+FROM mysql
+
+ENV MYSQL_ROOT_PASSWORD="mysql"
+ENV MYSQL_DATABASE="game-rest-api"
+
+EXPOSE 3306
