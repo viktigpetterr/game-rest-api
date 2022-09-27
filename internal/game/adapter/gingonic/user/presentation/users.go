@@ -2,14 +2,14 @@ package presentation
 
 import "github.com/viktigpetterr/game-rest-api/internal/game/domain"
 
-type JsonUsers struct {
-	Users []JsonUser `json:"users"`
+type Users struct {
+	Users []User `json:"users"`
 }
 
-func MakeJsonUsers(users []domain.User) JsonUsers {
-	jsonUsers := []JsonUser{}
+func MakeUsers(users []domain.User) Users {
+	presentationUsers := []User{}
 	for _, user := range users {
-		jsonUsers = append(jsonUsers, MakeJsonUser(user))
+		presentationUsers = append(presentationUsers, MakeUser(user))
 	}
-	return JsonUsers{jsonUsers}
+	return Users{presentationUsers}
 }

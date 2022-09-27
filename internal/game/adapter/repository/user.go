@@ -6,10 +6,12 @@ import (
 	"github.com/viktigpetterr/game-rest-api/internal/game/domain"
 )
 
-type User struct{}
+type User struct {
+	Connection mysql.IConnection
+}
 
-func (_ User) New(user domain.User) error {
-	db, err := mysql.Connection()
+func (u User) New(user domain.User) error {
+	db, err := u.Connection.Open()
 	if err != nil {
 		return err
 	}
@@ -18,8 +20,8 @@ func (_ User) New(user domain.User) error {
 	return result.Error
 }
 
-func (_ User) GetAll() ([]domain.User, error) {
-	db, err := mysql.Connection()
+func (u User) GetAll() ([]domain.User, error) {
+	db, err := u.Connection.Open()
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +45,8 @@ func (_ User) GetAll() ([]domain.User, error) {
 	return users, nil
 }
 
-func (_ User) GetByIds(ids []string) ([]domain.User, error) {
-	db, err := mysql.Connection()
+func (u User) GetByIds(ids []string) ([]domain.User, error) {
+	db, err := u.Connection.Open()
 	if err != nil {
 		return nil, err
 	}
@@ -64,5 +66,4 @@ func (_ User) GetByIds(ids []string) ([]domain.User, error) {
 		users = append(users, user)
 	}
 	return users, nil
-
 }

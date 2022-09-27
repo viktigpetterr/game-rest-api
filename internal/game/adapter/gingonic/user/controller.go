@@ -5,31 +5,27 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/viktigpetterr/game-rest-api/internal/game/adapter/gingonic/user/presentation"
 	"github.com/viktigpetterr/game-rest-api/internal/game/adapter/gingonic/user/request"
-	"github.com/viktigpetterr/game-rest-api/internal/game/adapter/repository"
 	"github.com/viktigpetterr/game-rest-api/internal/game/adapter/service"
 	"github.com/viktigpetterr/game-rest-api/internal/game/application/usecase"
+	"github.com/viktigpetterr/game-rest-api/internal/game/domain/repository"
 	"gorm.io/gorm"
 	"net/http"
 )
 
-var (
-	userRepository      repository.User
-	friendRepository    repository.Friend
-	gameStateRepository repository.GameState
+type Controller struct {
+	userRepository      repository.IUser
+	friendRepository    repository.IFriend
+	gameStateRepository repository.IGameState
 	uuidService         service.Uuid
-)
-
-type Controller struct{}
+}
 
 func (ctrl Controller) GetUsers(c *gin.Context) {
-	users, err := usecase.GetAllUsers(userRepository)
+	users, err := usecase.GetAllUsers(ctrl.userRepository)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, struct{}{})
+		c.JSON(http.StatusInternalServerError, struct{}{})
 		return
 	}
-
-	json := presentation.MakeJsonUsers(users)
-	c.JSON(http.StatusOK, json)
+	c.JSON(http.StatusOK, presentation.MakeUsers(users))
 }
 
 func (ctrl Controller) PostUser(c *gin.Context) {
@@ -40,14 +36,12 @@ func (ctrl Controller) PostUser(c *gin.Context) {
 	}
 
 	args := usecase.CreateUserArgs{Name: req.Name}
-	user, err := usecase.CreateUser(gameStateRepository, userRepository, uuidService, args)
+	user, err := usecase.CreateUser(ctrl.gameStateRepository, ctrl.userRepository, ctrl.uuidService, args)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, struct{}{})
 		return
 	}
-
-	json := presentation.MakeJsonUser(user)
-	c.JSON(http.StatusOK, json)
+	c.JSON(http.StatusOK, presentation.MakeUser(user))
 }
 
 func (ctrl Controller) GetState(c *gin.Context) {
@@ -57,7 +51,7 @@ func (ctrl Controller) GetState(c *gin.Context) {
 		return
 	}
 	args := usecase.LoadGameArgs{UserId: userId}
-	gameState, err := usecase.LoadGameState(gameStateRepository, args)
+	gameState, err := usecase.LoadGameState(ctrl.gameStateRepository, args)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, struct{}{})
@@ -67,8 +61,7 @@ func (ctrl Controller) GetState(c *gin.Context) {
 		return
 	}
 
-	json := presentation.MakeJsonGameState(gameState)
-	c.JSON(http.StatusOK, json)
+	c.JSON(http.StatusOK, presentation.MakeGameState(gameState))
 }
 
 func (ctrl Controller) PutState(c *gin.Context) {
@@ -89,7 +82,7 @@ func (ctrl Controller) PutState(c *gin.Context) {
 		GamesPlayed: req.GamesPlayed,
 		Score:       req.Score,
 	}
-	err := usecase.SaveGameState(gameStateRepository, args)
+	_, err := usecase.SaveGameState(ctrl.gameStateRepository, args)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, struct{}{})
 		return
@@ -106,7 +99,7 @@ func (ctrl Controller) GetFriends(c *gin.Context) {
 	}
 
 	args := usecase.GetFriendsArgs{UserId: userId}
-	friends, err := usecase.GetFriends(friendRepository, args)
+	friends, err := usecase.GetFriends(ctrl.friendRepository, args)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, struct{}{})
@@ -115,9 +108,7 @@ func (ctrl Controller) GetFriends(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, struct{}{})
 		return
 	}
-
-	json := presentation.MakeJsonFriends(friends)
-	c.JSON(http.StatusOK, json)
+	c.JSON(http.StatusOK, presentation.MakeFriends(friends))
 }
 
 func (ctrl Controller) PutFriends(c *gin.Context) {
@@ -137,7 +128,7 @@ func (ctrl Controller) PutFriends(c *gin.Context) {
 		UserId:  userId,
 		Friends: req.Friends,
 	}
-	err := usecase.UpdateFriends(userRepository, friendRepository, args)
+	err := usecase.UpdateFriends(ctrl.userRepository, ctrl.friendRepository, args)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, struct{}{})

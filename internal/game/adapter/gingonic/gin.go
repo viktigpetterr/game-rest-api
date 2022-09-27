@@ -10,10 +10,7 @@ import (
 )
 
 func Run() {
-	SetUpEnv()
-	r := Router()
-	_ = r.SetTrustedProxies([]string{os.Getenv("GIN_TRUSTED_PROXY")})
-	err := mysql.Migrate()
+	r, err := Init()
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -23,6 +20,18 @@ func Run() {
 	}
 }
 
+func Init() (*gin.Engine, error) {
+	err := SetUpEnv()
+	if err != nil {
+		return nil, err
+	}
+	r := Router()
+	_ = r.SetTrustedProxies([]string{os.Getenv("GIN_TRUSTED_PROXY")})
+	err = mysql.Connection{}.Migrate()
+
+	return r, err
+}
+
 func Router() *gin.Engine {
 	r := gin.Default()
 	user.Router(r)
@@ -30,11 +39,14 @@ func Router() *gin.Engine {
 	return r
 }
 
-func SetUpEnv() {
+func SetUpEnv() error {
 	mode := gin.Mode()
+	var err error
 	if mode == "debug" {
-		_ = godotenv.Load(".env.local")
+		err = godotenv.Load(".env.local")
 	} else {
-		_ = godotenv.Load(".env")
+		err = godotenv.Load(".env")
 	}
+
+	return err
 }

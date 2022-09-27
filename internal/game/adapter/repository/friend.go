@@ -6,10 +6,12 @@ import (
 	"github.com/viktigpetterr/game-rest-api/internal/game/domain"
 )
 
-type Friend struct{}
+type Friend struct {
+	Connection mysql.IConnection
+}
 
-func (_ Friend) PutByUserId(users []domain.User, id string) error {
-	db, err := mysql.Connection()
+func (f Friend) PutByUserId(users []domain.User, id string) error {
+	db, err := f.Connection.Open()
 	if err != nil {
 		return err
 	}
@@ -26,8 +28,8 @@ func (_ Friend) PutByUserId(users []domain.User, id string) error {
 	return err
 }
 
-func (_ Friend) GetByUserId(id string) ([]domain.Friend, error) {
-	db, err := mysql.Connection()
+func (f Friend) GetByUserId(id string) ([]domain.Friend, error) {
+	db, err := f.Connection.Open()
 	if err != nil {
 		return nil, err
 	}

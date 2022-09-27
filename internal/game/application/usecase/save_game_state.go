@@ -11,10 +11,10 @@ type SaveGameArgs struct {
 	Score       int
 }
 
-func SaveGameState(gameStateRepository repository.IGameState, args SaveGameArgs) error {
+func SaveGameState(gameStateRepository repository.IGameState, args SaveGameArgs) (domain.GameState, error) {
 	oldScore, err := gameStateRepository.GetScoreByUserId(args.UserId)
 	if err != nil {
-		return err
+		return domain.GameState{}, err
 	}
 
 	if args.Score < oldScore {

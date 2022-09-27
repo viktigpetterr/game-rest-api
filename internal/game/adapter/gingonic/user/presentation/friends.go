@@ -2,7 +2,7 @@ package presentation
 
 import "github.com/viktigpetterr/game-rest-api/internal/game/domain"
 
-type JsonFriends struct {
+type Friends struct {
 	Friends []friend `json:"friends"`
 }
 
@@ -12,8 +12,8 @@ type friend struct {
 	HighScore int    `json:"highscore"`
 }
 
-func MakeJsonFriends(friends []domain.Friend) JsonFriends {
-	json := JsonFriends{[]friend{}}
+func MakeFriends(friends []domain.Friend) Friends {
+	json := Friends{[]friend{}}
 	for _, f := range friends {
 		json.Friends = append(json.Friends, friend{Id: f.Id, Name: f.Name, HighScore: f.HighScore})
 	}

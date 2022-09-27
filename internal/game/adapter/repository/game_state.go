@@ -6,10 +6,12 @@ import (
 	"github.com/viktigpetterr/game-rest-api/internal/game/domain"
 )
 
-type GameState struct{}
+type GameState struct {
+	Connection mysql.IConnection
+}
 
-func (_ GameState) New(gameState domain.GameState) error {
-	db, err := mysql.Connection()
+func (g GameState) New(gameState domain.GameState) error {
+	db, err := g.Connection.Open()
 	if err != nil {
 		return err
 	}
@@ -18,32 +20,33 @@ func (_ GameState) New(gameState domain.GameState) error {
 		Create(
 			model.GameState{
 				UserId:      gameState.UserId,
-				GamesPlayed: gameState.GamesPlayed,
-				Score:       gameState.Score,
+				GamesPlayed: 0,
+				Score:       0,
 			}).
 		Error
 
 	return err
 }
 
-func (_ GameState) Update(gameState domain.GameState) error {
-	db, err := mysql.Connection()
+func (g GameState) Update(gameState domain.GameState) (domain.GameState, error) {
+	db, err := g.Connection.Open()
 	if err != nil {
-		return err
+		return domain.GameState{}, err
 	}
 
 	gameStateModel := model.GameState{
 		GamesPlayed: gameState.GamesPlayed,
 		Score:       gameState.Score,
 	}
-	result := db.Model(&model.GameState{UserId: gameState.UserId}).
+	result := db.
+		Model(&model.GameState{UserId: gameState.UserId}).
 		Updates(gameStateModel)
 
-	return result.Error
+	return gameState, result.Error
 }
 
-func (_ GameState) GetByUserId(id string) (domain.GameState, error) {
-	db, err := mysql.Connection()
+func (g GameState) GetByUserId(id string) (domain.GameState, error) {
+	db, err := g.Connection.Open()
 	if err != nil {
 		return domain.GameState{}, err
 	}
@@ -62,8 +65,8 @@ func (_ GameState) GetByUserId(id string) (domain.GameState, error) {
 	return gameState, nil
 }
 
-func (_ GameState) GetScoreByUserId(id string) (int, error) {
-	db, err := mysql.Connection()
+func (g GameState) GetScoreByUserId(id string) (int, error) {
+	db, err := g.Connection.Open()
 	if err != nil {
 		return 0, err
 	}
