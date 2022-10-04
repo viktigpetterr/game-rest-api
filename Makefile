@@ -14,5 +14,5 @@ docker-stop:
 
 test:
 	bash scripts/test.sh
-static:
+test-static:
 	bash scripts/static.sh

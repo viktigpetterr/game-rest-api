@@ -1,4 +1,4 @@
-# REST API
+# REST API - Examples
 The game uses a simple REST-based API and passes data using JSON. Note that it is assumed
 that ids used are UUIDs.
 ## Create user
